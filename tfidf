@@ -1,0 +1,95 @@
+package com.example.chatbot;
+import android.content.Context;
+import android.service.autofill.Dataset;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.*;
+
+public class tfidf {
+    public double tf(String document, String word) {
+        double n = 0;
+        double occurance = 0;
+        StringTokenizer tok = new StringTokenizer(document, " ");
+        while (tok.hasMoreTokens()) {
+            n = n + 1;
+            if (tok.nextToken().equals(word))
+                occurance = occurance + 1;
+        }
+        return occurance / n;
+    }
+
+    public double idf(double total_doc, String word, ArrayList<String> documents) {
+        int k = 0;
+        double word_occurance = 0;
+        for (String sent : documents) {
+            StringTokenizer tok = new StringTokenizer(sent, " ");
+            while (tok.hasMoreTokens()) {
+                if (tok.nextToken().equals(word))
+                    k = k + 1;
+            }
+            if (k >= 1)
+                word_occurance = word_occurance + 1;
+            k = 0;
+        }
+        if (total_doc==1)
+            return 5;
+        else
+            return  Math.log10(total_doc / word_occurance);
+    }
+
+    public double tf_idf(String document, String word, double total_doc, ArrayList<String> documents) {
+        double tf = tf(document, word);
+        double idf = idf(total_doc, word, documents);
+        return tf * idf;
+
+    }
+
+    public int words_size(ArrayList<String> sentences) {
+        HashSet<String> words = new HashSet<>();
+        for (String sent : sentences) {
+            StringTokenizer tok = new StringTokenizer(sent, " ");
+            while (tok.hasMoreTokens())
+                words.add(tok.nextToken());
+        }
+        return words.size();
+    }
+
+    public HashSet<String> unique(ArrayList<String> sentences) {
+       HashSet<String> words = new HashSet<>();
+        for (String sent : sentences) {
+            StringTokenizer tok = new StringTokenizer(sent, " ");
+            while (tok.hasMoreTokens())
+                words.add(tok.nextToken());
+        }
+        return words;
+
+    }
+
+    public double[][] tfidfmatrix(Context context) throws IOException {
+        LoadingDataSetQ x = new LoadingDataSetQ();
+        MainActivity mainActivity = new MainActivity();
+        BufferedReader br = mainActivity.Dataset(context);
+        ArrayList<String> sentences = x.questions(br);
+        ArrayList<Double> vector = new ArrayList<>();
+        double total_documents = sentences.size();
+        for (String sent : sentences) {
+            StringTokenizer tok = new StringTokenizer(sent, " ");
+            while (tok.hasMoreTokens()) {
+                vector.add(tf_idf(sent, tok.nextToken(), total_documents, sentences));
+            }
+        }
+        HashSet<String> words = unique(sentences);
+        ArrayList<String> words1 = new ArrayList<>(words);
+        int words_size = words_size(sentences);
+        double mat[][] = new double[sentences.size()][words_size];
+        for (int i = 0; i < mat.length; i++) {
+            String sent = sentences.get(i);
+            for (int j = 0; j < mat[0].length; j++) {
+                String word = words1.get(j);
+                mat[i][j] = tf_idf(sent, word, total_documents, sentences);
+            }
+        }
+        return mat;
+    }
+}
