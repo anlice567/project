@@ -1,0 +1,30 @@
+package com.example.chatbot;
+import android.content.Context;
+import java.io.*;
+import java.util.ArrayList;
+
+public class LoadingDataSetQ {
+    public static String filter_text(String user_text) throws IOException {
+        ArrayList<String> n = new ArrayList<>();
+        String text = user_text.toLowerCase().trim().replaceAll("[^A-Za-zА-Яа-я0-9]", " ");
+        return text;
+    }
+    public ArrayList<String> questions(BufferedReader br) throws IOException {
+        ArrayList <Questions> X = new ArrayList<>();
+        ArrayList<String> Q = new ArrayList<>();
+        String line = "";
+        try {
+            while ((line = br.readLine()) != null) {
+                String[] p = line.split(";");
+                Questions questions = new Questions(p[0]);
+                X.add(questions);
+                }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        for (Questions a:X) {
+            Q.add(filter_text(a.toString()));
+        }
+       return Q;
+    }
+}
