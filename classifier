@@ -1,0 +1,68 @@
+package com.example.chatbot;
+
+import java.io.IOException;
+import java.util.*;
+
+public class Classifier {
+    private Map<Integer, String> classMap;
+    private Map<String, double[]> tfidfMap;
+
+    public Classifier(List<String> classes, double[][] tfidfMatrix) {
+        this.classMap = new HashMap<>();
+        for (int i = 0; i < classes.size(); i++) {
+            classMap.put(i, classes.get(i));
+        }
+
+        this.tfidfMap = new HashMap<>();
+        for (int i = 0; i < tfidfMatrix.length; i++) {
+            double[] tfidfVector = tfidfMatrix[i];
+            String className = classMap.get(i);
+            tfidfMap.put(className, tfidfVector);
+        }
+    }
+
+    public String predictClass(String inputPhrase) {
+        Double[] inputTfidfVector = calculateTfidfVector(inputPhrase);
+        String predictedClass = null;
+        double maxSimilarity = Double.MIN_VALUE;
+
+        for (String className : tfidfMap.keySet()) {
+            double[] classTfidfVector = tfidfMap.get(className);
+            double similarity = calculateCosineSimilarity(inputTfidfVector, classTfidfVector);
+
+            if (similarity > maxSimilarity) {
+                maxSimilarity = similarity;
+                predictedClass = className;
+            }
+        }
+
+        return predictedClass;
+    }
+
+    public static Double[] calculateTfidfVector(String phrase) {
+        tfidf tf = new tfidf();
+        ArrayList<String> doc = new ArrayList<>();
+        ArrayList<Double> vector = new ArrayList<>();
+        doc.add(phrase);
+        StringTokenizer tok = new StringTokenizer(phrase, " ");
+        while (tok.hasMoreTokens())
+            vector.add(tf.tf_idf(phrase, tok.nextToken(), 1, doc));
+        Double[] vec = new Double[vector.size()];
+        vector.toArray(vec);
+        return vec;
+    }
+
+
+    private double calculateCosineSimilarity(Double[] vector1, double[] vector2) {
+        double dotProduct = 0.0;
+        double norm1 = 0.0, norm2 = 0.0;
+
+        for (int i = 0; i < vector1.length; i++) {
+            dotProduct += vector1[i] * vector2[i];
+            norm1 += Math.pow(vector1[i], 2);
+            norm2 += Math.pow(vector2[i], 2);
+        }
+
+        return dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
+    }
+}
