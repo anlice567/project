@@ -1,0 +1,11 @@
+package com.example.chatbot;
+
+public class Questions{
+    String questions;
+    public Questions(String questions) {
+        this.questions = questions;
+    }
+        public String toString() {
+            return questions + " ";
+        }
+    }
